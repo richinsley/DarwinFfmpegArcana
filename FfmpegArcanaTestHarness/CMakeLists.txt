@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
-project(FfmpegArcanaTestHarness LANGUAGES C Swift)
+project(FfmpegArcanaTestHarness LANGUAGES C CXX Swift)
 
 set(CMAKE_Swift_LANGUAGE_VERSION 5)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0" CACHE STRING "Minimum macOS version")
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -47,14 +49,17 @@ if(NOT FFMPEG_FOUND)
 endif()
 
 # ------------------------------------------------------------------------------
-# Build CFfmpegWrapper from the package
+# Build CFfmpegWrapper from the package (C and C++ sources)
 # ------------------------------------------------------------------------------
 add_library(CFfmpegWrapper STATIC
     ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper/ffmpeg_wrapper.c
+    ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper/media_fifo.cpp
+    ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper/fifo/default_semaphore_impl.cpp
 )
 
 target_include_directories(CFfmpegWrapper PUBLIC
     ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper/include
+    ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper
     ${FFMPEG_INCLUDE_DIR}
     ${FFMPEG_INCLUDE_DIR}/arcana
 )
@@ -86,6 +91,7 @@ target_link_libraries(CFfmpegWrapper PUBLIC
 add_library(FfmpegArcana STATIC
     ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/FfmpegArcana.swift
     ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/VideoDecoder.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/MediaFifo.swift
 )
 
 target_compile_options(FfmpegArcana PRIVATE

@@ -205,16 +205,19 @@ public final class Decoder: @unchecked Sendable {
 // MARK: - Frame
 
 public final class Frame: @unchecked Sendable {
-    fileprivate let ptr: UnsafeMutablePointer<AVFrame>
+    internal let ptr: UnsafeMutablePointer<AVFrame>
+    private let ownsMemory: Bool
 
     public init() throws {
         guard let ptr = ff_frame_alloc() else { throw FFmpegError.frameAllocationFailed }
         self.ptr = ptr
+        self.ownsMemory = true
     }
 
     public init(width: Int, height: Int, pixelFormat: PixelFormat) throws {
         guard let ptr = ff_frame_alloc() else { throw FFmpegError.frameAllocationFailed }
         self.ptr = ptr
+        self.ownsMemory = true
 
         let result = ff_frame_alloc_buffer(ptr, Int32(width), Int32(height), pixelFormat.rawValue)
         if result < 0 {
@@ -222,8 +225,19 @@ public final class Frame: @unchecked Sendable {
             throw FFmpegError.ffmpegError(code: result, message: FFmpeg.errorString(result))
         }
     }
+    
+    /// Initialize by taking ownership of an existing AVFrame pointer.
+    /// Used internally by FIFO read operations.
+    internal init(taking ptr: UnsafeMutablePointer<AVFrame>) {
+        self.ptr = ptr
+        self.ownsMemory = true
+    }
 
-    deinit { ff_frame_free(ptr) }
+    deinit { 
+        if ownsMemory {
+            ff_frame_free(ptr) 
+        }
+    }
 
     public var width: Int { Int(ptr.pointee.width) }
     public var height: Int { Int(ptr.pointee.height) }
@@ -252,14 +266,27 @@ public final class Frame: @unchecked Sendable {
 // MARK: - Packet
 
 public final class Packet: @unchecked Sendable {
-    fileprivate let ptr: UnsafeMutablePointer<AVPacket>
+    internal let ptr: UnsafeMutablePointer<AVPacket>
+    private let ownsMemory: Bool
 
     public init() throws {
         guard let ptr = ff_packet_alloc() else { throw FFmpegError.packetAllocationFailed }
         self.ptr = ptr
+        self.ownsMemory = true
+    }
+    
+    /// Initialize by taking ownership of an existing AVPacket pointer.
+    /// Used internally by FIFO read operations.
+    internal init(taking ptr: UnsafeMutablePointer<AVPacket>) {
+        self.ptr = ptr
+        self.ownsMemory = true
     }
 
-    deinit { ff_packet_free(ptr) }
+    deinit { 
+        if ownsMemory {
+            ff_packet_free(ptr) 
+        }
+    }
 
     public var streamIndex: Int { Int(ff_packet_get_stream_index(ptr)) }
     public func unref() { ff_packet_unref(ptr) }

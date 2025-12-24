@@ -1,4 +1,5 @@
 module CFfmpegWrapper {
     header "ffmpeg_wrapper.h"
+    header "media_fifo.h"
     export *
 }
