@@ -8,7 +8,7 @@
     #include <mach/mach.h>
     #include <mach/semaphore.h>
     #include <mach/task.h>
-    #include <device/device_port.h>
+//    #include <device/device_port.h>
     #include <pthread.h>
     #include <mach/clock.h>
     #define SEM_DARWIN 1

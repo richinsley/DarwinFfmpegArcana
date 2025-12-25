@@ -66,3 +66,4 @@ ffmpeg/build_apple
 ffmpeg/src_apple
 Frameworks/*
 FfmpegArcanaTestHarness/build
+scratch.md

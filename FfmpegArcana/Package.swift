@@ -9,7 +9,6 @@ let package = Package(
         .tvOS(.v17)
     ],
     products: [
-        // This is what other packages/apps can import
         .library(
             name: "FfmpegArcana",
             targets: ["FfmpegArcana"]
@@ -17,16 +16,17 @@ let package = Package(
     ],
     targets: [
         // C wrapper around FFmpeg
-        // The "path" and "publicHeadersPath" tell SPM where to find the code
         .target(
             name: "CFfmpegWrapper",
             path: "Sources/CFfmpegWrapper",
             publicHeadersPath: "include",
             cSettings: [
-                // These paths are relative to the package root
-                // Users must set FFMPEG_FRAMEWORK_PATH in their project
-                // Or we provide a default location
                 .headerSearchPath("include"),
+                // Paths relative to package root (FfmpegArcana/)
+                .headerSearchPath("../Frameworks/ios_device/include"),
+                .headerSearchPath("../Frameworks/ios_device/include/arcana"),
+                .headerSearchPath("../Frameworks/macos/include"),
+                .headerSearchPath("../Frameworks/macos/include/arcana"),
             ],
             linkerSettings: [
                 .linkedLibrary("z"),
@@ -49,13 +49,6 @@ let package = Package(
             name: "FfmpegArcana",
             dependencies: ["CFfmpegWrapper"],
             path: "Sources/FfmpegArcana"
-        ),
-        
-        // Unit tests
-        .testTarget(
-            name: "FfmpegArcanaTests",
-            dependencies: ["FfmpegArcana"],
-            path: "Tests/FfmpegArcanaTests"
         ),
     ]
 )

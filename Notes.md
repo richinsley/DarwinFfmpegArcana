@@ -4,5 +4,41 @@ sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 cd ffmpeg
 ./build-ffmpeg.sh ../Frameworks
 
+## build test harness
 cd FfmpegArcanaTestHarness
 ./build.sh
+
+## create xcode App
+Assume we want to create an app called 'FfmpegArcanaApp'
+```bash
+DarwinFfmpegArcana/
+├── FfmpegArcana/              # The Swift package
+├── FfmpegArcanaTestHarness/   # CMake CLI test (VS Code)
+├── FfmpegArcanaApp/           # NEW: Xcode iOS app
+│   ├── FfmpegArcanaApp.xcodeproj/
+│   └── FfmpegArcanaApp/
+│       ├── FfmpegArcanaAppApp.swift
+│       ├── ContentView.swift
+│       └── Assets.xcassets/
+└── Frameworks/
+    └── FFmpeg.xcframework/
+```
+
+### Add FfmpegArcana Package
+File → Add Package Dependencies → Add Local
+Select the FfmpegArcana folder
+
+## Add Framework
+Under General/Frameworks, Libraries, and Embedded Content
+* add Ffmpeg.xcframework
+* add 
+
+## adjust search paths
+* go to Build/Dettings
+* check "All" instead of "Basic"
+* search for "header search"
+* add these:
+```
+$(PROJECT_DIR)/../Frameworks/FFmpeg.xcframework/ios-arm64/FFmpeg.framework/Headers
+$(PROJECT_DIR)/../Frameworks/FFmpeg.xcframework/ios-arm64/FFmpeg.framework/Headers/arcana
+```

@@ -215,7 +215,9 @@ func testFifoPipeline(path: String, maxFrames: Int) {
                     try fifo.waitForReadData()
                     
                     guard let cmd = try fifo.read() else { continue }
-                    defer { cmd.release() }  // MUST release when done
+                    defer { 
+                        cmd.release()
+                    }  // MUST release when done
                     
                     switch cmd.type {
                     case .frame:
