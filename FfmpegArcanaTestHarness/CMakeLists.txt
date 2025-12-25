@@ -53,7 +53,7 @@ endif()
 # ------------------------------------------------------------------------------
 add_library(CFfmpegWrapper STATIC
     ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper/ffmpeg_wrapper.c
-    ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper/media_fifo.cpp
+    ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper/ff_cmd.cpp
     ${FFMPEG_ARCANA_ROOT}/Sources/CFfmpegWrapper/fifo/default_semaphore_impl.cpp
 )
 
@@ -91,7 +91,7 @@ target_link_libraries(CFfmpegWrapper PUBLIC
 add_library(FfmpegArcana STATIC
     ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/FfmpegArcana.swift
     ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/VideoDecoder.swift
-    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/MediaFifo.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/CmdFifo.swift
 )
 
 target_compile_options(FfmpegArcana PRIVATE

@@ -207,6 +207,9 @@ public final class Decoder: @unchecked Sendable {
 public final class Frame: @unchecked Sendable {
     internal let ptr: UnsafeMutablePointer<AVFrame>
     private let ownsMemory: Bool
+    
+    /// Direct access to underlying AVFrame pointer for interop with C APIs.
+    public var avFrame: UnsafeMutablePointer<AVFrame> { ptr }
 
     public init() throws {
         guard let ptr = ff_frame_alloc() else { throw FFmpegError.frameAllocationFailed }
@@ -268,6 +271,9 @@ public final class Frame: @unchecked Sendable {
 public final class Packet: @unchecked Sendable {
     internal let ptr: UnsafeMutablePointer<AVPacket>
     private let ownsMemory: Bool
+    
+    /// Direct access to underlying AVPacket pointer for interop with C APIs.
+    public var avPacket: UnsafeMutablePointer<AVPacket> { ptr }
 
     public init() throws {
         guard let ptr = ff_packet_alloc() else { throw FFmpegError.packetAllocationFailed }

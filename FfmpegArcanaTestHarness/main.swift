@@ -4,6 +4,7 @@
 
 import Foundation
 import FfmpegArcana
+import CFfmpegWrapper
 
 func main() {
     print("""
@@ -139,32 +140,50 @@ func testFifoPipeline(path: String, maxFrames: Int) {
         let decoder = try VideoDecoder(url: path, outputFormat: .bgra, useHardware: true)
         let info = decoder.videoInfo
 
-        print("\nFIFO Pipeline Test: \(path)")
+        print("\nCmd FIFO Pipeline Test: \(path)")
         print("Video: \(info.width)x\(info.height) @ \(String(format: "%.2f", info.frameRate)) fps")
         print("Hardware: \(decoder.useHardwareAcceleration ? "yes" : "no")")
 
-        // Create a frame FIFO with capacity for 10 frames
-        let fifo = FrameFifo(capacity: 10, mode: .lockless)
+        // Create command pool and FIFO
+        let pool = CmdPool(initialSize: 32, maxSize: 64)
+        let fifo = CmdFifo(capacity: 10, mode: .blocking)
         fifo.flowEnabled = true
 
-        var producerDone = false
         var consumerCount = 0
         let start = Date()
+        let startSem = DispatchSemaphore(value: 0)
 
-        // Producer thread - decode and push frames
+        // Producer thread - decode and push frame commands
         let producerThread = Thread {
+            startSem.signal()
+
             var count = 0
             do {
                 while count < maxFrames {
                     guard let decoded = try decoder.decodeNextFrame() else { break }
                     
+                    // Acquire a command from pool
+                    guard let cmd = pool.acquire() else {
+                        print("  [Producer] Pool exhausted!")
+                        break
+                    }
+                    
+                    // Initialize as frame command
+                    // Note: We need to clone the frame since decoded.frame will be reused
+                    let frameClone = av_frame_clone(decoded.frame.avFrame)
+                    cmd.initFrame(frameClone)
+                    cmd.pts = Int64(count)
+                    cmd.streamIndex = 0
+                    
                     // Wait for write space and push
                     try fifo.waitForWriteSpace()
-                    try fifo.write(decoded.frame)
+                    try fifo.write(cmd)
+                    // Ownership transferred to FIFO - don't release cmd
+                    
                     count += 1
                     
                     if count % 10 == 0 {
-                        print("  [Producer] Pushed frame \(count), FIFO count: \(fifo.count)")
+                        print("  [Producer] Pushed frame \(count), FIFO: \(fifo.count), Pool free: \(pool.freeCount)")
                     }
                 }
             } catch {
@@ -172,37 +191,55 @@ func testFifoPipeline(path: String, maxFrames: Int) {
             }
             
             print("  [Producer] Done, produced \(count) frames")
-            producerDone = true
             
-            // Disable flow to unblock consumer if waiting
-            fifo.flowEnabled = false
+            // Send EOS command
+            do {
+                if let eosCmd = pool.acquire() {
+                    eosCmd.initEOS()
+                    try fifo.waitForWriteSpace()
+                    try fifo.write(eosCmd)
+                    print("  [Producer] Sent EOS")
+                }
+            } catch {
+                print("  [Producer] Error sending EOS: \(error)")
+            }
         }
 
-        // Consumer thread - pull frames from FIFO
+        // Consumer thread - pull commands from FIFO
         let consumerThread = Thread {
+            startSem.signal()
+
             do {
-                while true {
-                    // Try to wait for data with timeout
-                    let waitResult = fifo.tryWaitForReadData()
+                loop: while true {
+                    // Block waiting for data
+                    try fifo.waitForReadData()
                     
-                    if !waitResult {
-                        if producerDone && fifo.count == 0 {
-                            break
-                        }
-                        // Brief sleep before retry
-                        Thread.sleep(forTimeInterval: 0.001)
-                        continue
-                    }
+                    guard let cmd = try fifo.read() else { continue }
+                    defer { cmd.release() }  // MUST release when done
                     
-                    if let frame = try fifo.read() {
+                    switch cmd.type {
+                    case .frame:
                         consumerCount += 1
                         if consumerCount % 10 == 0 {
-                            print("  [Consumer] Got frame \(consumerCount): \(frame.width)x\(frame.height)")
+                            if let frame = cmd.frameData {
+                                print("  [Consumer] Got frame \(consumerCount): \(frame.pointee.width)x\(frame.pointee.height)")
+                            }
                         }
+                        // Frame data is released when cmd is released (via data_ref)
+                        
+                    case .eos:
+                        print("  [Consumer] Received EOS")
+                        break loop
+                        
+                    case .flush:
+                        print("  [Consumer] Received FLUSH")
+                        
+                    default:
+                        print("  [Consumer] Unknown command type: \(cmd.type)")
                     }
                 }
-            } catch FifoError.flowDisabled {
-                // Expected when producer finishes
+            } catch CmdFifoError.flowDisabled {
+                print("  [Consumer] Flow disabled, exiting")
             } catch {
                 print("  [Consumer] Error: \(error)")
             }
@@ -211,9 +248,14 @@ func testFifoPipeline(path: String, maxFrames: Int) {
         }
 
         print("\nStarting pipeline...\n")
+        print("  Pool: \(pool.totalCount) total, \(pool.freeCount) free\n")
         
         producerThread.start()
         consumerThread.start()
+
+        // Wait for both to actually start
+        startSem.wait()
+        startSem.wait()
 
         // Wait for threads to complete
         while producerThread.isExecuting || consumerThread.isExecuting {
@@ -230,6 +272,7 @@ func testFifoPipeline(path: String, maxFrames: Int) {
           Frames:    \(consumerCount) consumed
           Time:      \(String(format: "%.2f", elapsed))s
           Throughput: \(String(format: "%.1f", fps)) fps
+          Pool:      \(pool.inUseCount) in use, \(pool.freeCount) free
           FIFO read: \(fifo.hasBeenRead ? "yes" : "no")
         """)
     } catch {
@@ -296,58 +339,95 @@ func runTests() {
         catch { return true }
     }
 
-    // FIFO tests
-    test("FrameFifo creation") {
-        let fifo = FrameFifo(capacity: 10, mode: .lockless)
+    // CmdPool and CmdFifo tests
+    test("CmdPool creation") {
+        let pool = CmdPool(initialSize: 10, maxSize: 20)
+        return pool.totalCount == 10 && pool.freeCount == 10 && pool.inUseCount == 0
+    }
+
+    test("CmdPool acquire/release") {
+        let pool = CmdPool(initialSize: 5, maxSize: 10)
+        
+        guard let cmd = pool.acquire() else { return false }
+        guard pool.inUseCount == 1 else { return false }
+        
+        cmd.release()
+        return pool.inUseCount == 0 && pool.freeCount == 5
+    }
+
+    test("CmdFifo creation") {
+        let fifo = CmdFifo(capacity: 10, mode: .lockless)
         return fifo.count == 0 && !fifo.flowEnabled
     }
 
-    test("FrameFifo flow control") {
-        let fifo = FrameFifo(capacity: 10, mode: .lockless)
+    test("CmdFifo flow control") {
+        let fifo = CmdFifo(capacity: 10, mode: .lockless)
         fifo.flowEnabled = true
         let enabled = fifo.flowEnabled
         fifo.flowEnabled = false
         return enabled && !fifo.flowEnabled
     }
 
-    test("FrameFifo write/read") {
-        let fifo = FrameFifo(capacity: 5, mode: .blocking)
+    test("CmdFifo write/read with EOS") {
+        let pool = CmdPool(initialSize: 5)
+        let fifo = CmdFifo(capacity: 5, mode: .blocking)
         fifo.flowEnabled = true
         
-        let frame = try Frame(width: 640, height: 480, pixelFormat: .bgra)
+        // Send an EOS command
+        guard let cmd = pool.acquire() else { return false }
+        cmd.initEOS()
         
-        // Should be able to get write space
         guard fifo.tryWaitForWriteSpace() else { return false }
-        try fifo.write(frame)
+        try fifo.write(cmd)
+        // Don't release - ownership transferred
         
         guard fifo.count == 1 else { return false }
         
-        // Should be able to read
+        // Read it back
         guard fifo.tryWaitForReadData() else { return false }
-        guard let readFrame = try fifo.read() else { return false }
+        guard let readCmd = try fifo.read() else { return false }
+        defer { readCmd.release() }  // Must release
         
-        return readFrame.width == 640 && readFrame.height == 480 && fifo.count == 0
+        return readCmd.type == .eos && readCmd.isSentinel && fifo.count == 0
     }
 
-    test("PacketFifo creation") {
-        let fifo = PacketFifo(capacity: 20, mode: .blocking)
-        return fifo.count == 0
-    }
-
-    test("FIFO capacity limit") {
-        let fifo = FrameFifo(capacity: 2, mode: .blocking)
+    test("CmdFifo capacity limit") {
+        let pool = CmdPool(initialSize: 10)
+        let fifo = CmdFifo(capacity: 2, mode: .blocking)
         fifo.flowEnabled = true
         
-        let frame = try Frame(width: 100, height: 100, pixelFormat: .bgra)
-        
         // Fill the FIFO
-        _ = fifo.tryWaitForWriteSpace()
-        try fifo.write(frame)
-        _ = fifo.tryWaitForWriteSpace()
-        try fifo.write(frame)
+        for _ in 0..<2 {
+            guard let cmd = pool.acquire() else { return false }
+            cmd.initFlush()
+            _ = fifo.tryWaitForWriteSpace()
+            try fifo.write(cmd)
+        }
         
-        // Third write should not have space available (non-blocking check)
+        // Third write should not have space available
         return !fifo.tryWaitForWriteSpace()
+    }
+
+    test("Cmd types") {
+        let pool = CmdPool(initialSize: 5)
+        
+        guard let cmd1 = pool.acquire() else { return false }
+        cmd1.initEOS()
+        guard cmd1.type == .eos && cmd1.isSentinel && !cmd1.isMedia else { 
+            cmd1.release()
+            return false 
+        }
+        cmd1.release()
+        
+        guard let cmd2 = pool.acquire() else { return false }
+        cmd2.initFlush()
+        guard cmd2.type == .flush && cmd2.isSentinel else {
+            cmd2.release()
+            return false
+        }
+        cmd2.release()
+        
+        return true
     }
 
     print("\n─────────────────────────────────────")
