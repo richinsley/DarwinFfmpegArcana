@@ -65,5 +65,6 @@ fastlane/test_output
 ffmpeg/build_apple
 ffmpeg/src_apple
 Frameworks/*
+FfmpegArcana/Frameworks/*
 FfmpegArcanaTestHarness/build
 scratch.md

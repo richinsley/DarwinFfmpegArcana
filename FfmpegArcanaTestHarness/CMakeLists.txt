@@ -22,7 +22,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(FFMPEG_ARCANA_ROOT "${CMAKE_SOURCE_DIR}/../FfmpegArcana" CACHE PATH "Path to FfmpegArcana package")
 
 # Path to FFmpeg xcframework
-set(FFMPEG_ROOT "${CMAKE_SOURCE_DIR}/../Frameworks" CACHE PATH "Path to FFmpeg frameworks")
+set(FFMPEG_ROOT "${CMAKE_SOURCE_DIR}/../FfmpegArcana/Frameworks" CACHE PATH "Path to FFmpeg frameworks")
 
 # Verify paths
 if(NOT EXISTS "${FFMPEG_ARCANA_ROOT}/Package.swift")

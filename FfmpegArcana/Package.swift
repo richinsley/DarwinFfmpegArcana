@@ -15,24 +15,31 @@ let package = Package(
         ),
     ],
     targets: [
-        // C wrapper around FFmpeg
+        // 1. Binary Target
+        // Since Frameworks is now inside FfmpegArcana/, the path is local.
+        .binaryTarget(
+            name: "FFmpeg",
+            path: "Frameworks/FFmpeg.xcframework"
+        ),
+
+        // 2. C Wrapper
+        // We remove the manual headerSearchPaths for the frameworks.
+        // The 'dependencies' array handles the include paths automatically.
         .target(
             name: "CFfmpegWrapper",
+            dependencies: ["FFmpeg"],
             path: "Sources/CFfmpegWrapper",
             publicHeadersPath: "include",
             cSettings: [
                 .headerSearchPath("include"),
-                // Paths relative to package root (FfmpegArcana/)
-                .headerSearchPath("../Frameworks/ios_device/include"),
-                .headerSearchPath("../Frameworks/ios_device/include/arcana"),
-                .headerSearchPath("../Frameworks/macos/include"),
-                .headerSearchPath("../Frameworks/macos/include/arcana"),
+                .headerSearchPath("include/arcana")
             ],
             linkerSettings: [
                 .linkedLibrary("z"),
                 .linkedLibrary("bz2"),
                 .linkedLibrary("iconv"),
                 .linkedLibrary("c++"),
+                
                 .linkedFramework("CoreMedia"),
                 .linkedFramework("CoreVideo"),
                 .linkedFramework("VideoToolbox"),
@@ -44,11 +51,18 @@ let package = Package(
             ]
         ),
         
-        // Swift API layer
+        // 3. Swift API
         .target(
             name: "FfmpegArcana",
             dependencies: ["CFfmpegWrapper"],
             path: "Sources/FfmpegArcana"
         ),
+        
+        // 4. Tests
+        .testTarget(
+            name: "FfmpegArcanaTests",
+            dependencies: ["FfmpegArcana"],
+            path: "Tests/FfmpegArcanaTests"
+        )
     ]
 )

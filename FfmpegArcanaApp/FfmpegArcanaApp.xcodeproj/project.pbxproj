@@ -8,18 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		9B12BB1B2EFDCF8D00882B4D /* FfmpegArcana in Frameworks */ = {isa = PBXBuildFile; productRef = 9B12BB1A2EFDCF8D00882B4D /* FfmpegArcana */; };
-		9B12BB1E2EFDD0B700882B4D /* FFmpeg.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B12BB1D2EFDD0B700882B4D /* FFmpeg.xcframework */; };
-		9B12BB1F2EFDD0B700882B4D /* FFmpeg.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9B12BB1D2EFDD0B700882B4D /* FFmpeg.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9B12BB222EFDE11700882B4D /* FFmpeg.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B12BB212EFDE11700882B4D /* FFmpeg.xcframework */; };
+		9B12BB232EFDE11700882B4D /* FFmpeg.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9B12BB212EFDE11700882B4D /* FFmpeg.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		9B12BB202EFDD0B700882B4D /* Embed Frameworks */ = {
+		9B12BB242EFDE11700882B4D /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				9B12BB1F2EFDD0B700882B4D /* FFmpeg.xcframework in Embed Frameworks */,
+				9B12BB232EFDE11700882B4D /* FFmpeg.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -29,6 +29,7 @@
 /* Begin PBXFileReference section */
 		9B12BB0B2EFDBE0B00882B4D /* FfmpegArcanaApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FfmpegArcanaApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B12BB1D2EFDD0B700882B4D /* FFmpeg.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = FFmpeg.xcframework; path = ../Frameworks/FFmpeg.xcframework; sourceTree = "<group>"; };
+		9B12BB212EFDE11700882B4D /* FFmpeg.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = FFmpeg.xcframework; path = ../FfmpegArcana/Frameworks/FFmpeg.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -44,7 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B12BB1E2EFDD0B700882B4D /* FFmpeg.xcframework in Frameworks */,
+				9B12BB222EFDE11700882B4D /* FFmpeg.xcframework in Frameworks */,
 				9B12BB1B2EFDCF8D00882B4D /* FfmpegArcana in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -72,6 +73,7 @@
 		9B12BB1C2EFDD0B700882B4D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9B12BB212EFDE11700882B4D /* FFmpeg.xcframework */,
 				9B12BB1D2EFDD0B700882B4D /* FFmpeg.xcframework */,
 			);
 			name = Frameworks;
@@ -87,7 +89,7 @@
 				9B12BB072EFDBE0B00882B4D /* Sources */,
 				9B12BB082EFDBE0B00882B4D /* Frameworks */,
 				9B12BB092EFDBE0B00882B4D /* Resources */,
-				9B12BB202EFDD0B700882B4D /* Embed Frameworks */,
+				9B12BB242EFDE11700882B4D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);

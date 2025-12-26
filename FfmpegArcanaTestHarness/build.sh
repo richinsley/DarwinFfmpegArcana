@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 
 SCRIPT_DIR="$(pwd)"
 FFMPEG_ARCANA="${FFMPEG_ARCANA_ROOT:-$SCRIPT_DIR/../FfmpegArcana}"
-FFMPEG_FW="${FFMPEG_ROOT:-$SCRIPT_DIR/../Frameworks}"
+FFMPEG_FW="${FFMPEG_ROOT:-$SCRIPT_DIR/../FfmpegArcana/Frameworks}"
 
 # Convert to absolute paths
 FFMPEG_ARCANA="$(cd "$FFMPEG_ARCANA" && pwd)"
