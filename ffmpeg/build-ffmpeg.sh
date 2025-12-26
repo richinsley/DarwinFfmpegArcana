@@ -76,6 +76,26 @@ resolve_path() {
 
 INSTALL_PREFIX="$(resolve_path "$1")"
 
+symlink_headers_to_package() {
+    local HEADERS_DEST="$SCRIPT_DIR/../FfmpegArcana/Sources/CFfmpegWrapper/include"
+    
+    # Use ios_device as canonical source (or macos if that's all we built)
+    local HEADERS_SRC="$INSTALL_PREFIX/ios_device/include"
+    [ ! -d "$HEADERS_SRC" ] && HEADERS_SRC="$INSTALL_PREFIX/macos/include"
+    
+    echo "Symlinking FFmpeg headers to Swift package..."
+    
+    for lib in libavcodec libavdevice libavformat libavutil libswscale libswresample libavfilter libavprivate; do
+        if [ -d "$HEADERS_SRC/$lib" ]; then
+            rm -rf "$HEADERS_DEST/$lib"
+            ln -sf "$HEADERS_SRC/$lib" "$HEADERS_DEST/$lib"
+            echo "  ✓ $lib -> $HEADERS_SRC/$lib"
+        fi
+    done
+    
+    echo "Done!"
+}
+
 # -----------------------------------------------------------------------------
 # Tool checks & layout
 # -----------------------------------------------------------------------------
@@ -498,6 +518,9 @@ EOF
 
   xcodebuild -create-xcframework "${ARGS[@]}" -output "$OUT"
   echo "✅ XCFramework created at: $OUT"
+
+  symlink_headers_to_package
+  echo "✅ Include path symlinks"
 }
 
 create_xcframework

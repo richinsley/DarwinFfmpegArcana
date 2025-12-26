@@ -68,3 +68,12 @@ Frameworks/*
 FfmpegArcana/Frameworks/*
 FfmpegArcanaTestHarness/build
 scratch.md
+
+FfmpegArcana/Sources/CFfmpegWrapper/include/libavcodec
+FfmpegArcana/Sources/CFfmpegWrapper/include/libavdevice
+FfmpegArcana/Sources/CFfmpegWrapper/include/libavfilter
+FfmpegArcana/Sources/CFfmpegWrapper/include/libavformat
+FfmpegArcana/Sources/CFfmpegWrapper/include/libavprivate
+FfmpegArcana/Sources/CFfmpegWrapper/include/libavutil
+FfmpegArcana/Sources/CFfmpegWrapper/include/libswresample
+FfmpegArcana/Sources/CFfmpegWrapper/include/libswscale
