@@ -27,3 +27,15 @@ DarwinFfmpegArcana/
 ### Add FfmpegArcana Package
 File → Add Package Dependencies → Add Local
 Select the FfmpegArcana folder
+
+
+### Add UIApplicationSceneManifest key to project:
+1 Select your target in Xcode
+2 Go to the Info tab
+3 Under "Custom iOS Target Properties", add the keys manually:
+   * Right-click → Add Row (Application Scene Manifest may already be there)
+   * Add "Application Scene Manifest (Xcode will translate to UIApplicationSceneManifest)
+   * Expand it and add:
+      * Enable Multiple Windows = YES
+      * Scene Configuration → External Display Session Role Non-Interactive→ Item 0 → Configuration Name = "External Display"
+      * remove other empty keys!
