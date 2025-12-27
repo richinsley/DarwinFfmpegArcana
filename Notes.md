@@ -27,18 +27,3 @@ DarwinFfmpegArcana/
 ### Add FfmpegArcana Package
 File → Add Package Dependencies → Add Local
 Select the FfmpegArcana folder
-
-## Add Framework
-Under General/Frameworks, Libraries, and Embedded Content
-* add Ffmpeg.xcframework
-* add 
-
-## adjust search paths
-* go to Build/Dettings
-* check "All" instead of "Basic"
-* search for "header search"
-* add these:
-```
-$(PROJECT_DIR)/../Frameworks/FFmpeg.xcframework/ios-arm64/FFmpeg.framework/Headers
-$(PROJECT_DIR)/../Frameworks/FFmpeg.xcframework/ios-arm64/FFmpeg.framework/Headers/arcana
-```

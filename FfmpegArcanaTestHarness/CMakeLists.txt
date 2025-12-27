@@ -92,6 +92,15 @@ add_library(FfmpegArcana STATIC
     ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/FfmpegArcana.swift
     ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/VideoDecoder.swift
     ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/CmdFifo.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/PipelineTypes.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/PipelineComponent.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/Pipeline.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/ParameterSet.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/Components/CameraSource.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/Components/DisplaySink.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/Components/MicrophoneSource.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/Ports/OutputPorts.swift
+    ${FFMPEG_ARCANA_ROOT}/Sources/FfmpegArcana/Pipeline/Ports/InputPorts.swift
 )
 
 target_compile_options(FfmpegArcana PRIVATE
